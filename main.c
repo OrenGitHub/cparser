@@ -39,6 +39,37 @@ static char *read_c_file(const char *filename)
     return buffer;
 }
 
+void handle_call(const TSNode call)
+{
+    const unsigned int n = ts_node_child_count(call);
+    for (unsigned int i=0;i<n;i++) {
+        const TSNode child_i = ts_node_child(call, i);
+        if (ts_node_is_named(child_i)) {
+            const char *kind = ts_node_type(child_i);
+            if (strcmp(kind, "identifier") == 0) {
+                const TSPoint start = ts_node_start_point(child_i);
+                printf("found call: [line = %2d : column = %2d]\n", start.row+1, start.column+1);
+            }
+        }
+    }
+}
+
+void traverse(const TSNode cst)
+{
+    const unsigned int n = ts_node_child_count(cst);
+    for (unsigned int i=0;i<n;i++) {
+       const TSNode child_i = ts_node_child(cst, i);
+       if (ts_node_is_named(child_i)) {
+           const char *kind = ts_node_type(child_i);
+           if (strcmp(kind, "call_expression") == 0) {
+               handle_call(child_i);
+           } else {
+               traverse(child_i);
+           }
+       } 
+    }
+}
+
 int main(int argc, char **argv)
 {
     const char *filename = argv[1];
@@ -47,7 +78,6 @@ int main(int argc, char **argv)
     const unsigned int length = strlen(buffer);
     const TSTree *tree = ts_parser_parse_string(c_parser,NULL,buffer,length);
     const TSNode cst = ts_tree_root_node(tree);
-    printf("%s\n", ts_node_type(cst));
-    printf("%s\n", ts_node_string(cst));
+    traverse(cst);
     return 0;
 }
