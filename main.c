@@ -48,7 +48,12 @@ void handle_call(const TSNode call)
             const char *kind = ts_node_type(child_i);
             if (strcmp(kind, "identifier") == 0) {
                 const TSPoint start = ts_node_start_point(child_i);
-                printf("found call: [line = %2d : column = %2d]\n", start.row+1, start.column+1);
+                const TSPoint end = ts_node_end_point(child_i);
+                const unsigned int row = start.row + 1;
+                const unsigned int colstart = start.column + 1;
+                const unsigned int colend = end.column;
+                const char *fmt = "call [row: %2d (col: %2d, end: %2d)]\n";
+                printf(fmt, row, colstart, colend);
             }
         }
     }
